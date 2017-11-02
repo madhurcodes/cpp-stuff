@@ -85,9 +85,14 @@ void bfs_from_source(vector <vector <pair<int,int> > > &adj, int s){
     }
 }
 
-void addEdge(vector <vector <pair<int,int> > > &ad, int s, int t,int weight){
+void addEdge(vector <vector <pair<int,int> > > &ad,vector<vector<int>> &edgeList, int s, int t,int weight){
     ad[s].push_back(make_pair(t,weight));
     ad[t].push_back(make_pair(s,weight));
+    vector<int> n;
+    n.push_back(weight);
+    n.push_back(s);
+    n.push_back(t);
+    edgeList.push_back(n);
 }
 
 
@@ -187,45 +192,125 @@ void dijkstra_nlogn(vector <vector <pair<int,int> > > &adj,int s){
     for(i=0;i<adj.size();i++){
         cout<<i <<" - " <<before[i]<<endl;
     }
-    cout << "path from 8 to 0 is ";
-    printDijkstraPath(before,8,0);
+    cout << "path from 5 to 0 is ";
+    printDijkstraPath(before,5,0);
 
         
 }
 
+struct union_find{
+    struct union_find *par;
+    int num;
+    int rank;
+};
+
+struct union_find *uf_findset(struct union_find *a){
+    struct union_find *b = a;
+    int t = 0;
+    while(a->par != NULL){
+        a = a->par;
+        t = 1;
+    }
+    if(t==1){
+        b->par = a;
+    }
+    return a;
+}
+void uf_union(struct union_find *a, struct union_find *b){
+    struct union_find *ap = uf_findset(a);
+    struct union_find *bp = uf_findset(b); 
+    if(ap->num==bp->num){
+        return;
+    }
+    if (ap->rank > bp->rank){
+        bp->par = ap;
+    }
+    else if (ap->rank < bp->rank){
+        ap->par = bp;
+    }
+    else{
+        ap->rank += 1;
+        bp->par = ap;
+    }
+}
+
+
+void kruskals(vector <vector <pair<int,int> > > &adj,vector<vector<int>> &edgeList, int s){
+    vector <vector <pair<int,int> > > newg(adj.size());
+    vector<vector<int>> newEdgeList;
+    vector<struct union_find *> ulis;
+    auto comp = [](const std::vector<int>& a, const std::vector<int>& b) {
+        return a[0] < b[0];
+        };
+    sort(edgeList.begin(),edgeList.end(),comp);
+    int i,j;
+    struct union_find *temp;
+    for (i=0;i<adj.size();i++){
+        temp = new union_find;
+        *temp = {NULL,i,0};
+        ulis.push_back(temp);
+    }
+    vector <int> temp_edge;
+    for(i=0;i<edgeList.size();i++){
+        temp_edge = edgeList[i];
+        if(uf_findset(ulis[temp_edge[1]])->num !=  uf_findset(ulis[temp_edge[2]])->num){
+            addEdge(newg,newEdgeList,temp_edge[1],temp_edge[2],temp_edge[0]);
+            uf_union(ulis[temp_edge[1]],ulis[temp_edge[2]]);
+        }
+    }
+    cout<<"Kruskal MST "<<endl;
+    printAdjList(newg);
+}
+
 int main(){
-    int n=9,x,i;// 0 to n-1 vertice numbers
-    vector <vector <pair<int,int> > > adj(n);
-    // first el of pair is vertice next is weight
-    // addEdge(adj,1,2,2);
-    // addEdge(adj,1,3,3);
-    // addEdge(adj,1,4,23);
-    // addEdge(adj,2,3,6);
-    // addEdge(adj,4,3,4);
-    // addEdge(adj,0,1,2);
-    // addEdge(adj,6,5,9);
-    // addEdge(adj,4,5,8);
-    //------------
-    addEdge(adj,0,1,4);
-    addEdge(adj,0,7,8);
-    addEdge(adj,1,7,11);
-    addEdge(adj,1,2,8);
-    addEdge(adj,8,7,7);
-    addEdge(adj,6,7,1);
-    addEdge(adj,2,8,2);
-    addEdge(adj,8,6,6);
-    addEdge(adj,2,3,7);
-    addEdge(adj,2,5,4);
-    addEdge(adj,5,6,2);
-    addEdge(adj,3,5,14);
-    addEdge(adj,3,4,9);
-    addEdge(adj,4,5,10);
+    int n=6,x,i;// 0 to n-1 vertice numbers
+    // vector<struct union_find *> ulis;
+    // struct union_find* temp;
+    // for (i=0;i<5;i++){
+    //     temp = new union_find;
+    //     *temp = {NULL,i,0};
+    //     ulis.push_back(temp);
+    // }
+    // cout<<ulis[2]->num;
+    // cout<<ulis[4]->num;
     
+    // struct union_find a1 = {NULL,4,0};
+    // struct union_find *fd1 = new struct union_find (NULL,4,0);
+    // struct union_find a2 = {NULL,7,0};
+    // struct union_find a3 = {NULL,88,0};
+    // struct union_find a4 = {NULL,1,0};
+    // struct union_find a5 = {NULL,9,0};
+    // cout << "a3 - "<< uf_findset(&a3)->num << "a4 - "<< uf_findset(&a4)->num<<"a5 - "<<uf_findset(&a5)->num<<endl;
+    // uf_union(&a3,&a4);
+    // uf_union(&a3,&a5);
+    // cout << "a3 - "<< uf_findset(&a3)->num << "a4 - "<< uf_findset(&a4)->num<<"a5 - "<<uf_findset(&a5)->num<<endl;
+    
+    // cout << a4.num<<endl;
+    // cout << a4.num<<endl;
+    // cout << a4.num<<endl;
+    vector <vector <pair<int,int> > > adj(n);
+    vector <vector<int>> edgeList;
+    // // first el of pair is vertice next is weight
+    addEdge(adj,edgeList,0,1,1);
+    addEdge(adj,edgeList,1,2,6);
+    addEdge(adj,edgeList,2,5,2);
+    addEdge(adj,edgeList,4,5,4);
+    addEdge(adj,edgeList,3,4,1);
+    addEdge(adj,edgeList,0,3,3);
+    addEdge(adj,edgeList,1,3,5);
+    addEdge(adj,edgeList,2,4,5);
+    addEdge(adj,edgeList,1,4,1);
+    // addEdge(adj,edgeList,2,5,4);
+    // addEdge(adj,edgeList,5,6,2);
+    // addEdge(adj,edgeList,3,5,14);
+    // addEdge(adj,edgeList,3,4,9);
+    // addEdge(adj,edgeList,4,5,10);
     printAdjList(adj);
     cout<<"----------------"<<endl;
+    // kruskals(adj,edgeList,1);
     // bfs_from_source(adj,2);
     // dfs(adj);
-    dijkstra_nlogn(adj,0);
+    // dijkstra_nlogn(adj,0);
 
     return 0;
 }

@@ -123,6 +123,6 @@ int main(){
     printAdjList(adj);
     cout<<"----------------"<<endl;
     bfs_from_source(adj,2);
-    dfs(adj)
+    dfs(adj);
     return 0;
 }
